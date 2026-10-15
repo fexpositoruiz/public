@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tren Pont d'Inca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: andén de una sola columna — panel "próximo tren" arriba, lista del día debajo */
+:root{
+  --bg:#eef2f6; --surface:#ffffff; --fg:#14202e; --muted:#5c6b7c; --line:#d5dde6;
+  --accent:#1f4fa3; --accent-soft:#e3ebf8;
+  --t1:#8cc63f; --t2:#6ab7e6; --t3:#f2d544; --chip-fg:#14202e;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1620; --surface:#18222f; --fg:#e8eef5; --muted:#93a2b3; --line:#2a3646;
+  --accent:#7fa8ec; --accent-soft:#1d2c44; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1620; --surface:#18222f; --fg:#e8eef5; --muted:#93a2b3; --line:#2a3646;
+  --accent:#7fa8ec; --accent-soft:#1d2c44; color-scheme:dark }
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:2rem;letter-spacing:.01em;margin:0;line-height:1}
+h1 small{display:block;font-family:var(--body);font-weight:500;font-size:.8rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-top:6px}
+.clock{font-family:var(--display);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.next{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.big .time{font-family:var(--display);font-weight:700;font-size:4.6rem;line-height:.9;font-variant-numeric:tabular-nums}
+.big .meta{display:flex;flex-direction:column;gap:6px}
+.count{font-family:var(--display);font-size:1.5rem;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.after{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+.pill{display:flex;align-items:center;gap:8px;background:var(--accent-soft);border-radius:999px;padding:5px 12px 5px 6px;font-variant-numeric:tabular-nums;font-weight:600}
+.chip{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-family:var(--display);font-weight:700;font-size:.95rem;color:var(--chip-fg);flex:none}
+.chip.T1{background:var(--t1)} .chip.T2{background:var(--t2)} .chip.T3{background:var(--t3)}
+.dir{font-size:.85rem;color:var(--muted)}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:.85rem;font-weight:500;border:0;background:none;color:var(--muted);padding:6px 10px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.daytag{font-size:.85rem;color:var(--muted)}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.list h2{margin:0;padding:14px 16px;font-family:var(--display);font-size:1.25rem;font-weight:600;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.list h2 span{font-family:var(--body);font-size:.8rem;font-weight:500;color:var(--muted)}
+ol{list-style:none;margin:0;padding:0;max-height:430px;overflow-y:auto}
+li{display:grid;grid-template-columns:64px 34px 1fr;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+li:last-child{border-bottom:0}
+li .t{font-family:var(--display);font-size:1.3rem;font-weight:600}
+li.past{opacity:.38}
+li.is-next{background:var(--accent-soft)}
+li.is-next .t{color:var(--accent)}
+li.hour{display:block;padding:6px 16px;background:var(--bg);font-size:.72rem;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.note{font-size:.8rem;color:var(--muted);line-height:1.5;margin:0}
+.note a{color:var(--accent)}
+@media (max-width:420px){.big .time{font-size:3.8rem}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Pont d'Inca<small>SFM · T1 · T2 · T3</small></h1>
+    <div class="clock" id="clock">--:--</div>
+  </header>
+
+  <section class="next" aria-live="polite">
+    <div class="eyebrow" id="nextLabel">Próximo tren</div>
+    <div class="big">
+      <div class="time" id="nTime">--:--</div>
+      <div class="meta">
+        <div style="display:flex;align-items:center;gap:8px"><span class="chip" id="nChip"></span><span class="dir" id="nDir"></span></div>
+        <div class="count" id="nCount"></div>
+      </div>
+    </div>
+    <div class="after" id="after"></div>
+  </section>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Tipo de día">
+      <button id="m-auto" data-m="auto" aria-pressed="true">Auto</button>
+      <button id="m-lv" data-m="lv" aria-pressed="false">Laborable</button>
+      <button id="m-fs" data-m="fs" aria-pressed="false">Finde / festivo</button>
+    </div>
+    <span class="daytag" id="daytag"></span>
+  </div>
+
+  <section class="list">
+    <h2>Horario del día <span id="count"></span></h2>
+    <ol id="list"></ol>
+  </section>
+
+  <p class="note">Horario vigente del 1/9/2026 al 30/6/2027, ambos sentidos. Hora de Mallorca. Los sábados y los domingos y festivos tienen el mismo horario. En modo Auto se aplican los festivos nacionales y de Baleares; las fiestas locales de Marratxí no están incluidas, márcalas a mano. Incidencias: <a href="https://www.trensfm.com/es/horarios-y-frecuencias/informacion-en-tiempo-real-de-la-circulacion" target="_blank" rel="noopener">información en tiempo real de SFM</a>.</p>
+</div>
+
+<script>
+const RAW={
+ lv_inca:"T2 05:53,T1 06:03,T3 06:13,T1 06:23,T2 06:33,T1 06:43,T3 06:53,T1 07:03,T2 07:13,T1 07:23,T3 07:33,T1 07:43,T2 07:53,T1 08:03,T3 08:13,T1 08:23,T2 08:33,T1 08:43,T3 08:53,T1 09:03,T2 09:13,T3 09:33,T2 09:53,T3 10:13,T2 10:33,T1 10:53,T3 11:13,T2 11:33,T1 11:53,T3 12:13,T2 12:33,T1 12:53,T3 13:13,T1 13:23,T2 13:33,T1 13:43,T3 13:53,T1 14:03,T2 14:13,T1 14:23,T3 14:33,T1 14:43,T2 14:53,T1 15:03,T3 15:13,T1 15:23,T2 15:33,T1 15:43,T3 15:53,T1 16:03,T2 16:13,T1 16:23,T3 16:33,T1 16:43,T2 16:53,T1 17:03,T3 17:13,T1 17:23,T2 17:33,T1 17:43,T1 18:03,T3 18:23,T2 18:43,T1 19:03,T3 19:23,T2 19:43,T1 20:03,T3 20:23,T2 20:43,T1 21:03,T3 21:23,T2 21:43,T1 22:03,T3 22:28",
+ lv_palma:"T1 06:33,T2 06:50,T1 07:10,T3 07:20,T1 07:30,T2 07:40,T1 07:50,T3 08:00,T1 08:10,T2 08:20,T1 08:30,T3 08:40,T1 08:50,T2 09:00,T1 09:10,T3 09:20,T1 09:30,T2 09:40,T1 09:50,T3 10:00,T1 10:10,T2 10:20,T3 10:40,T2 11:00,T3 11:20,T2 11:40,T3 12:00,T2 12:20,T3 12:41,T1 13:00,T2 13:20,T3 13:41,T1 14:00,T2 14:20,T1 14:30,T3 14:41,T1 14:50,T1 15:00,T1 15:10,T2 15:20,T1 15:30,T3 15:40,T1 15:50,T2 16:00,T1 16:10,T3 16:20,T1 16:30,T2 16:40,T1 16:50,T3 17:00,T1 17:10,T2 17:20,T1 17:30,T3 17:40,T1 17:50,T2 18:00,T1 18:10,T3 18:20,T1 18:30,T2 18:40,T1 18:50,T3 19:00,T1 19:16,T3 19:32,T2 19:50,T1 20:10,T3 20:32,T2 20:50,T1 21:10,T3 21:32,T2 21:50,T1 22:10,T3 22:32,T2 22:50,T3 23:32",
+ fs_inca:"T3 06:17,T2 06:47,T3 07:17,T2 07:47,T3 08:17,T2 08:47,T3 09:17,T2 09:47,T3 10:17,T2 10:47,T3 11:17,T2 11:47,T3 12:17,T2 12:47,T3 13:17,T2 13:47,T3 14:17,T2 14:47,T3 15:17,T2 15:47,T3 16:17,T2 16:47,T3 17:17,T2 17:47,T3 18:17,T2 18:47,T3 19:17,T2 19:47,T3 20:17,T2 20:47,T3 21:17,T2 21:47,T3 22:17",
+ fs_palma:"T3 07:26,T3 08:26,T2 08:56,T3 09:26,T2 09:56,T3 10:26,T2 10:56,T3 11:26,T2 11:56,T3 12:26,T2 12:56,T3 13:26,T2 13:56,T3 14:26,T2 14:56,T3 15:26,T2 15:56,T3 16:26,T2 16:56,T3 17:26,T2 17:56,T3 18:26,T2 18:56,T3 19:26,T2 19:56,T3 20:26,T2 20:56,T3 21:26,T2 21:56,T3 22:26,T2 22:56,T3 23:26"
+};
+const DEST={T1:"Inca",T2:"Sa Pobla",T3:"Manacor"};
+function build(type){
+  const a=[];
+  for(const [dir,key] of [["inca",type+"_inca"],["palma",type+"_palma"]])
+    for(const it of RAW[key].split(",")){const [l,t]=it.split(" ");const [h,m]=t.split(":").map(Number);
+      a.push({l,t,min:h*60+m,dest:dir==="palma"?"Palma":DEST[l]});}
+  return a.sort((x,y)=>x.min-y.min);
+}
+const SCHED={lv:build("lv"),fs:build("fs")};
+// Festivos nacionales y de Baleares dentro del periodo de vigencia
+const HOLIDAYS=new Set(["2026-10-12","2026-11-01","2026-12-06","2026-12-08","2026-12-25","2026-12-26","2027-01-01","2027-01-06","2027-03-01","2027-03-25","2027-03-26","2027-03-29","2027-05-01"]);
+let mode="auto";
+try{const s=localStorage.getItem("pdi-mode");if(s)mode=s;}catch(e){}
+
+function madridNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,weekday:"short"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const h=Number(p.hour)%24;
+  return {date:`${p.year}-${p.month}-${p.day}`,wd:p.weekday,h,m:Number(p.minute),s:Number(p.second)};
+}
+function dayType(date,wd){
+  if(mode!=="auto")return mode;
+  if(wd==="Sat"||wd==="Sun"||HOLIDAYS.has(date))return "fs";
+  return "lv";
+}
+function nextDate(date){const d=new Date(date+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+1);
+  return {date:d.toISOString().slice(0,10),wd:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()]};}
+const $=id=>document.getElementById(id);
+let lastKey="";
+function fmtCount(sec){
+  if(sec<60)return "llegando";
+  const m=Math.floor(sec/60);
+  if(m<60)return `en ${m} min`;
+  return `en ${Math.floor(m/60)} h ${m%60} min`;
+}
+function render(){
+  const n=madridNow();
+  const pad=x=>String(x).padStart(2,"0");
+  $("clock").textContent=`${pad(n.h)}:${pad(n.m)}`;
+  const type=dayType(n.date,n.wd);
+  const list=SCHED[type];
+  const nowSec=n.h*3600+n.m*60+n.s;
+  let idx=list.findIndex(x=>x.min*60>=nowSec);
+  let upcoming, tomorrow=false;
+  if(idx===-1){
+    const nd=nextDate(n.date);const t2=dayType(nd.date,nd.wd);
+    upcoming=SCHED[t2].slice(0,4).map(x=>({...x,sec:x.min*60+86400-nowSec}));tomorrow=true;
+  } else upcoming=list.slice(idx,idx+4).map(x=>({...x,sec:x.min*60-nowSec}));
+  const f=upcoming[0];
+  $("nextLabel").textContent=tomorrow?"Primer tren de mañana":"Próximo tren";
+  $("nTime").textContent=f.t;
+  $("nChip").textContent=f.l;$("nChip").className="chip "+f.l;
+  $("nDir").textContent="→ "+f.dest;
+  $("nCount").textContent=fmtCount(f.sec);
+  $("after").innerHTML=upcoming.slice(1).map(x=>`<span class="pill"><span class="chip ${x.l}" style="width:24px;height:24px;font-size:.8rem">${x.l}</span>${x.t}<span class="dir">→ ${x.dest}</span></span>`).join("");
+  $("daytag").textContent=(type==="lv"?"Horario de lunes a viernes":"Horario de sábados, domingos y festivos")+(mode==="auto"?"":" (manual)");
+  const key=type+"|"+idx+"|"+n.date;
+  if(key!==lastKey){
+    lastKey=key;
+    let html="",hr="";
+    list.forEach((x,i)=>{
+      const h=x.t.slice(0,2);
+      if(h!==hr){hr=h;html+=`<li class="hour">${h}:00</li>`;}
+      const cls=(idx===-1||i<idx)?"past":(i===idx?"is-next":"");
+      html+=`<li class="${cls}"${i===idx?' id="cur"':''}><span class="t">${x.t}</span><span class="chip ${x.l}">${x.l}</span><span class="dir">→ ${x.dest}</span></li>`;
+    });
+    $("list").innerHTML=html;
+    $("count").textContent=`${list.length} trenes`;
+    const cur=$("cur");
+    if(cur){const ol=$("list");ol.scrollTop=cur.offsetTop-ol.offsetTop-60;}
+  }
+}
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",()=>{
+  mode=b.dataset.m;try{localStorage.setItem("pdi-mode",mode);}catch(e){}
+  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  lastKey="";render();
+}));
+document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.m===mode)));
+render();setInterval(render,1000);
+</script>
+</body>
+</html>
